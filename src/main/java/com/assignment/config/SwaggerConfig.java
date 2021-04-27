@@ -10,7 +10,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @EnableSwagger2
 @Configuration
-public class TestSwaggerConfig {
+public class SwaggerConfig {
 
 	@Bean
 	public Docket doc() {
