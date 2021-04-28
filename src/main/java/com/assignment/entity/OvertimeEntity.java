@@ -13,12 +13,15 @@ import javax.persistence.TemporalType;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.assignment.dto.DecideOTRequestDTO;
+import com.assignment.dto.OvertimeDTO;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "attendance")
+@Table(name = "overtime")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,13 +29,13 @@ public class OvertimeEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
-	private int id;
+	private Integer id;
 
 	@Column(name = "title")
 	private String title;
 
 	@Column(name = "status")
-	private int status;
+	private Integer status;
 
 	@Column(name = "description")
 	private String description;
@@ -43,5 +46,18 @@ public class OvertimeEntity {
 	private Date date;
 
 	@Column(name = "employee_id")
-	private int employeeId;
+	private Integer employeeId;
+
+	public OvertimeEntity(OvertimeDTO dto) {
+		this.id = dto.getId();
+		this.title = dto.getTitle();
+		this.status = dto.getStatus();
+		this.description = dto.getDescription();
+		this.date = dto.getDate();
+		this.employeeId = dto.getEmployeeId();
+	}
+	public OvertimeEntity(DecideOTRequestDTO dto) {
+		this.id = dto.getId();
+		this.status = dto.getStatus();
+	}
 }

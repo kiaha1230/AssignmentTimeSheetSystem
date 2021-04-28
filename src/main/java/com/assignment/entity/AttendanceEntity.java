@@ -13,6 +13,8 @@ import javax.persistence.TemporalType;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.assignment.dto.AttendanceDTO;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -39,4 +41,11 @@ public class AttendanceEntity {
 
 	@Column(name = "employee_id")
 	private int employeeId;
+
+	public AttendanceEntity(AttendanceDTO dto) {
+		this.id = dto.getId();
+		this.checkInTime = dto.getCheckInTime();
+		this.checkOutTime = dto.getCheckOutTime();
+		this.employeeId = dto.getEmployeeId();
+	}
 }
