@@ -1,4 +1,4 @@
-package com.assignment.dto;
+package com.assignment.dto.account;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

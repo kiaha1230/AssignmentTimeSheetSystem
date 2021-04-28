@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "assignment")
+@Table(name = "employee")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -45,11 +45,11 @@ public class EmployeeEntity {
 
 	@Column(name = "password")
 	private String password;
-	
-	@Column(name = "is_admin")
-	private Boolean isAdmin;
-	
-	@Column(name = "is_sal_accountancy")
-	private Boolean isSalAccountancy;
+
+	@Column(name = "roles")
+	private int roles;
+
+	@Column(name = "active")
+	private boolean active;
 
 }

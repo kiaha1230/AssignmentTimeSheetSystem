@@ -1,9 +1,8 @@
 package com.assignment.repository;
 
+import com.assignment.entity.EmployeeEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.assignment.entity.AssignmentEntity;
-
-public interface EmployeeRepository extends JpaRepository<AssignmentEntity, Integer> {
-
+public interface EmployeeRepository extends JpaRepository<EmployeeEntity, Integer> {
+    EmployeeEntity findEmployeeEntityByUsername(String username);
 }
