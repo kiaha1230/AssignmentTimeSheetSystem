@@ -1,6 +1,7 @@
 package com.assignment.entity;
 
 import javax.persistence.Column;
+import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -10,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@Entity
 @Table(name = "employee")
 @Getter
 @Setter
@@ -44,11 +46,11 @@ public class EmployeeEntity {
 	@Column(name = "password")
 	private String password;
 
-	@Column(name = "is_admin")
-	private Boolean isAdmin;
+	@Column(name = "roles")
+	private int roles;
 
-	@Column(name = "is_sal_accountancy")
-	private Boolean isSalAccountancy;
+	@Column(name = "active")
+	private boolean active;
 
 //	public EmployeeEntity(EmployeeDTO dto) {
 //		this.id = dto.getId();
