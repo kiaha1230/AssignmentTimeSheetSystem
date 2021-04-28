@@ -11,7 +11,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -19,7 +18,7 @@ import java.text.DateFormat;
 import java.util.Locale;
 
 @RestController
-@RequestMapping("/accounts")
+@RequestMapping("api/accounts")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class AccountController {
     private DateFormat dateFormat;
@@ -37,14 +36,12 @@ public class AccountController {
         this.jwtTokenComponent = jwtTokenComponent;
         this.jwtUserDetailsService = jwtUserDetailsService;
     }
-
-    @PostMapping("/authenticate")
+    @PostMapping("/login")
     public ResponseEntity<JWTResponseDTO> authenticate(@RequestBody AuthenticationRequestDTO dto){
         System.out.println(dto.getUsername());
         authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(dto.getUsername(), dto.getPassword()));
         UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(dto.getUsername());
-        System.out.println(userDetails.getPassword());
         String token = jwtTokenComponent.generateToken(userDetails);
         return ResponseEntity.ok(new JWTResponseDTO(token));
     }
@@ -61,10 +58,5 @@ public class AccountController {
         if (rawPassword != null) {
             employeeEntity.setPassword(passwordEncoder.encode(rawPassword));
         }
-    }
-    @GetMapping("/hello")
-    public String hello(){
-        EmployeeEntity employeeEntity = employeeService.findByUserName("diep");
-        return employeeEntity.getPassword();
     }
 }

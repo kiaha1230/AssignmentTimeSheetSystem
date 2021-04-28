@@ -34,10 +34,10 @@ public class UserTransform {
         UserDTO userDTO = new UserDTO();
         userDTO.setUsername(employeeEntity.getUsername());
         userDTO.setEmail(employeeEntity.getEmail());
-        userDTO.setRoles(roleTransform.apply(employeeEntity.getRoles()));
         userDTO.setBankAccount(employeeEntity.getBankAccount());
         userDTO.setBankName(employeeEntity.getBankName());
         userDTO.setFullName(employeeEntity.getFullName());
+        userDTO.setRoles(roleTransform.apply(employeeEntity.getRoles()));
         return userDTO;
     }
 

@@ -7,6 +7,8 @@ public enum Role {
         this.roleNumber = number;
     }
     public int getRoleNumber(){
+
         return roleNumber;
     }
+
 }
