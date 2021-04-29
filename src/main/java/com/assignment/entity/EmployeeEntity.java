@@ -11,6 +11,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Date;
+
 @Entity
 @Table(name = "employee")
 @Getter
@@ -52,5 +54,13 @@ public class EmployeeEntity {
 	@Column(name = "active")
 	private boolean active;
 
+	@Column(name = "account_non_locked")
+	private boolean accountNonLocked;
+
+	@Column(name = "failed_attempt")
+	private int failedAttempt;
+
+	@Column(name = "lock_time")
+	private Date lockTime;
 
 }

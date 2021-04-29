@@ -20,8 +20,8 @@ public class JWTUserDetailsFactory {
                 employeeEntity.getPassword(),
                 employeeEntity.getEmail(),
                 mapToGrantedAuthorities(employeeEntity.getRoles()),
-                employeeEntity.isActive()
-
+                employeeEntity.isActive(),
+                employeeEntity.isAccountNonLocked()
         );
     }
 

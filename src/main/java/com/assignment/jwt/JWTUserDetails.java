@@ -15,15 +15,17 @@ public class JWTUserDetails implements UserDetails {
     private final String email;
     private final Collection<? extends GrantedAuthority> authorities;
     private final boolean enabled;
+    private final boolean isAccountNonLocked;
 
     public JWTUserDetails(int id, String username, String password, String email,
-                          Collection<? extends GrantedAuthority> authorities, boolean enabled) {
+                          Collection<? extends GrantedAuthority> authorities, boolean enabled,boolean isAccountNonLocked) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.password = password;
         this.authorities = authorities;
         this.enabled = enabled;
+        this.isAccountNonLocked = isAccountNonLocked;
     }
 
     public int getId() {
@@ -42,7 +44,7 @@ public class JWTUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return isAccountNonLocked;
     }
 
     @Override

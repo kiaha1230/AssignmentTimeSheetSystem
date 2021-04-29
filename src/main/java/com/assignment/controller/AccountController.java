@@ -62,6 +62,7 @@ public class AccountController {
         if(employeeService.findByUserName(body.getUsername())==null){
             if(RegexValidator.isValidEmail(body.getEmail()) && RegexValidator.isValidPassWord(body.getPassword())) {
                 encryptPassword(employeeEntity);
+                employeeEntity.setAccountNonLocked(true);
                 employeeService.save(employeeEntity);
                 response.setMessage(messageSource.getMessage("success.created", null, locale));
                 return ResponseEntity.ok(response);
