@@ -4,12 +4,14 @@ import com.assignment.enumm.Role;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.List;
 
 @Getter
 @Setter
 public class UserDTO {
+	@NotBlank(message = "error.blank")
     private String username;
     private String email;
     private String fullName;

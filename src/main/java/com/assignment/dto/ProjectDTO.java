@@ -14,8 +14,8 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ProjectDTO {
 	private Integer id;
-	@NotNull
-	@NotBlank
+
+	@NotBlank(message = "error.blank")
 	private String name;
 
 	private String description;
@@ -25,6 +25,7 @@ public class ProjectDTO {
 	private Integer pmId;
 
 	public ProjectDTO(ProjectEntity entity) {
+		this.id = entity.getId();
 		this.name = entity.getName();
 		this.description = entity.getDescription();
 		this.status = entity.getStatus();
