@@ -54,7 +54,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable().authorizeRequests()
-                .antMatchers("/api/accounts", "/api/accounts/**").permitAll()
+                .antMatchers("/api/accounts/login").permitAll()
                 .anyRequest().authenticated()
                 // make sure stateless session
                 .and().exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint).and()

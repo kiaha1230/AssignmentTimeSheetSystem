@@ -1,4 +1,5 @@
 package com.assignment.controller;
+import com.assignment.dto.MessageDTO;
 import com.assignment.dto.account.*;
 import com.assignment.entity.EmployeeEntity;
 import com.assignment.jwt.JWTTokenComponent;
@@ -6,9 +7,13 @@ import com.assignment.jwt.JWTUserDetailsService;
 import com.assignment.service.EmployeeService;
 import com.assignment.transform.UserTransform;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +26,7 @@ import java.util.Locale;
 @RequestMapping("api/accounts")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class AccountController {
+    private MessageSource messageSource;
     private DateFormat dateFormat;
     private EmployeeService employeeService;
     private BCryptPasswordEncoder passwordEncoder;
@@ -28,7 +34,8 @@ public class AccountController {
     private JWTTokenComponent jwtTokenComponent;
     private JWTUserDetailsService jwtUserDetailsService;
     @Autowired
-    public AccountController(DateFormat dateFormat, EmployeeService employeeService, BCryptPasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JWTTokenComponent jwtTokenComponent, JWTUserDetailsService jwtUserDetailsService) {
+    public AccountController(MessageSource messageSource, DateFormat dateFormat, EmployeeService employeeService, BCryptPasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JWTTokenComponent jwtTokenComponent, JWTUserDetailsService jwtUserDetailsService) {
+        this.messageSource = messageSource;
         this.dateFormat = dateFormat;
         this.employeeService = employeeService;
         this.passwordEncoder = passwordEncoder;
@@ -36,6 +43,7 @@ public class AccountController {
         this.jwtTokenComponent = jwtTokenComponent;
         this.jwtUserDetailsService = jwtUserDetailsService;
     }
+
     @PostMapping("/login")
     public ResponseEntity<JWTResponseDTO> authenticate(@RequestBody AuthenticationRequestDTO dto){
         System.out.println(dto.getUsername());
@@ -46,12 +54,75 @@ public class AccountController {
         return ResponseEntity.ok(new JWTResponseDTO(token));
     }
     @PostMapping
-    public ResponseEntity<UserDTO> createUser(@RequestBody @Valid CreateUserDTO body, Locale locale){
+    public ResponseEntity<MessageDTO> createUser(@RequestBody @Valid CreateUserDTO body, Locale locale){
         UserTransform transform = new UserTransform(dateFormat);
         EmployeeEntity employeeEntity = transform.apply(body);
-        encryptPassword(employeeEntity);
+        MessageDTO response = new MessageDTO();
+        System.out.println(RegexValidator.isValidEmail(body.getEmail()));
+        if(employeeService.findByUserName(body.getUsername())==null){
+            if(RegexValidator.isValidEmail(body.getEmail()) && RegexValidator.isValidPassWord(body.getPassword())) {
+                encryptPassword(employeeEntity);
+                employeeService.save(employeeEntity);
+                response.setMessage(messageSource.getMessage("success.created", null, locale));
+                return ResponseEntity.ok(response);
+            } else{
+                response.setMessage(messageSource.getMessage("error.emailpassword", null, locale));
+                return ResponseEntity.badRequest().body(response);
+            }
+        } else{
+            response.setMessage(messageSource.getMessage("error.created", null, locale));
+            return ResponseEntity.badRequest().body(response);
+        }
+
+
+    }
+    @PutMapping("/password")
+    public ResponseEntity<MessageDTO> changePassword(@RequestBody @Valid ChangePasswordDTO body, Locale locale) {
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        String username = securityContext.getAuthentication().getName();
+        MessageDTO response = new MessageDTO();
+        if(!body.getCurrentPassword().equals(body.getNewPassword())){
+            if(body.getNewPassword().equals(body.getRetypePassword())){
+                if(RegexValidator.isValidPassWord(body.getNewPassword())){
+                    EmployeeEntity employeeEntity = employeeService.findByUserName(username);
+                    if (passwordEncoder.matches(body.getCurrentPassword(), employeeEntity.getPassword())) {
+                        employeeEntity.setPassword(body.getNewPassword());
+                        encryptPassword(employeeEntity);
+                        employeeService.save(employeeEntity);
+                        response.setMessage(messageSource.getMessage("success.pwd.passwordChanged", null, locale));
+                        return ResponseEntity.ok(response);
+                    } else {
+                        response.setMessage(messageSource.getMessage("error.pwd.currentPassword", null, locale));
+                        return ResponseEntity.badRequest().body(response);
+                    }
+                } else {
+                    response.setMessage(messageSource.getMessage("error.pwd.format", null, locale));
+                    return ResponseEntity.badRequest().body(response);
+                }
+            }else {
+                response.setMessage(messageSource.getMessage("error.pwd.New&Retype", null, locale));
+                return ResponseEntity.badRequest().body(response);
+            }
+        } else {
+            response.setMessage(messageSource.getMessage("error.pwd.CurrentPwd&NewPwd", null, locale));
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    @PutMapping
+    public ResponseEntity<MessageDTO> updateAccount(@RequestBody @Valid UpdateUserDTO body,Locale locale){
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        String username = securityContext.getAuthentication().getName();
+        MessageDTO response = new MessageDTO();
+        EmployeeEntity employeeEntity = employeeService.findByUserName(username);
+        employeeEntity.setEmail(body.getEmail());
+        employeeEntity.setFullName(body.getFullName());
+        employeeEntity.setBankAccount(body.getBankAccount());
+        employeeEntity.setBankName(body.getBankName());
+        employeeEntity.setPhoneNumber(body.getPhoneNumber());
+        employeeEntity.setAddress(body.getAddress());
         employeeService.save(employeeEntity);
-        return ResponseEntity.ok(transform.apply(employeeEntity));
+        response.setMessage(messageSource.getMessage("success.update",null,locale));
+        return ResponseEntity.ok(response);
     }
     private void encryptPassword(EmployeeEntity employeeEntity) {
         String rawPassword = employeeEntity.getPassword();

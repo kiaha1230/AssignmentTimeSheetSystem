@@ -20,7 +20,7 @@ public class EmployeeEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
-	private Integer id;
+	private int id;
 
 	@Column(name = "fullname")
 	private String fullName;
@@ -52,18 +52,5 @@ public class EmployeeEntity {
 	@Column(name = "active")
 	private boolean active;
 
-//	public EmployeeEntity(EmployeeDTO dto) {
-//		this.id = dto.getId();
-//		this.fullName = dto.getFullName();
-//		this.phoneNumber = dto.getPhoneNumber();
-//		this.email = dto.getEmail();
-//		this.address = dto.getAddress();
-//		this.bankAccount = dto.getBankAccount();
-//		this.bankName = dto.getBankName();
-//		this.username = dto.getUsername();
-//		this.password = dto.getPassword();
-//		this.isAdmin = dto.getIsAdmin();
-//		this.isSalAccountancy = dto.getIsSalAccountancy();
-//	}
 
 }
