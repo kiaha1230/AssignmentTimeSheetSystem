@@ -23,8 +23,8 @@ public class SwaggerConfig implements WebMvcConfigurer {
 	}
 
 	public ApiInfo apiInfo() {
-		return new ApiInfo("Swagger Test", "This is description", "This is version",
-				"https://www.youtube.com/watch?v=dQw4w9WgXcQ", "This is contact name", "This is licence",
+		return new ApiInfo("Assignment Training Project", "This is API document for project", "Version : 0.0.2",
+				"https://www.youtube.com/watch?v=dQw4w9WgXcQ", "Bao, Diep", "This is licence",
 				"https://www.youtube.com/watch?v=dQw4w9WgXcQ");
 	}
 
