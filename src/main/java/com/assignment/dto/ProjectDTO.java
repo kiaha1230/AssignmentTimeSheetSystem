@@ -13,7 +13,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class ProjectDTO {
-	private Integer id;
+	private int id;
 
 	@NotBlank(message = "error.blank")
 	private String name;

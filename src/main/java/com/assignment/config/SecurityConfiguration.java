@@ -1,7 +1,5 @@
 package com.assignment.config;
 
-import com.assignment.jwt.JWTAuthenticationEntryPoint;
-import com.assignment.jwt.JWTRequestFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +14,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.assignment.jwt.JWTAuthenticationEntryPoint;
+import com.assignment.jwt.JWTRequestFilter;
 
 
 @Configuration
@@ -54,7 +55,15 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable().authorizeRequests()
-                .antMatchers("/api/accounts/login", "/api/accounts/**").permitAll()
+                .antMatchers("/api/accounts/login", "/api/accounts/**","/v2/api-docs",
+                        "/swagger-resources",
+                        "/swagger-resources/**",
+                        "/configuration/ui",
+                        "/configuration/security",
+                        "/swagger-ui.html",
+                        "/webjars/**",
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**").permitAll()
                 .anyRequest().authenticated()
                 // make sure stateless session
                 .and().exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint)
@@ -65,4 +74,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         // add a filter to validate the tokens with every request
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
     }
+   
+   
 }

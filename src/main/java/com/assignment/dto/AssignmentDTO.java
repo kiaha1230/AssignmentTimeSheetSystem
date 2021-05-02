@@ -17,12 +17,10 @@ public class AssignmentDTO {
 
 	private String description;
 
-	@NotNull
-	@NotBlank
+	@NotNull(message ="error.blank" )
 	private Integer employeeId;
 
-	@NotNull
-	@NotBlank
+	@NotNull(message = "error.blank")
 	private Integer projectId;
 
 	public AssignmentDTO(AssignmentEntity entity) {

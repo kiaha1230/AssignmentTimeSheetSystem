@@ -22,7 +22,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class OvertimeDTO {
-	private Integer id;
+	private int id;
 
 	private String title;
 

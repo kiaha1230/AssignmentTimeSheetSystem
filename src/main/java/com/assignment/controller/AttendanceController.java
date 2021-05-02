@@ -7,6 +7,7 @@ import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -26,6 +27,7 @@ import antlr.collections.List;
  */
 @RestController
 @RequestMapping("/api")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class AttendanceController {
 	@Autowired
 	private AttendanceService attendanceService;
@@ -46,8 +48,7 @@ public class AttendanceController {
 	public ResponseEntity<?> checkOut(@Valid @PathVariable Integer employeeId) {
 		MessageDTO message = new MessageDTO();
 		try {
-			attendanceService.checkOut(employeeId);
-			message.setMessage("Check Out Successfully");
+			message = attendanceService.checkOut(employeeId);
 		} catch (Exception e) {
 			message.setMessage("Unknown Error: " + e.getMessage());
 		}

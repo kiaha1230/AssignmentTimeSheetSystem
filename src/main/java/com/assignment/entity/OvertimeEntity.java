@@ -29,7 +29,7 @@ public class OvertimeEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
-	private Integer id;
+	private int id;
 
 	@Column(name = "title")
 	private String title;

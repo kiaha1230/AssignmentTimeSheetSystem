@@ -72,7 +72,7 @@ public class AttendanceService {
 		MessageDTO message = new MessageDTO();
 		try {
 			Date dateNow = new Date();
-			String hql = "FROM AttendanceEntity a WHERE DATE(a.checkInTime) = Date(now()) AND a.employeeId = :id";
+			String hql = "FROM AttendanceEntity a WHERE DATE(a.checkInTime) = Date(now()) AND a.employeeId = :id and a.checkOutTime is null";
 			Query q = em.createQuery(hql);
 			q.setParameter("id", employeeId);
 			List<AttendanceEntity> ls = q.getResultList();
