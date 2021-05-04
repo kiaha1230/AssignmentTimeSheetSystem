@@ -53,6 +53,7 @@ public class AccountController {
         EmployeeEntity e = employeeService.findByUserName(body.getUsername());
         MessageDTO response  = new MessageDTO();
         if(e!=null){
+            //if account isn't locked
             if(e.isAccountNonLocked()){
                 if(passwordEncoder.matches(body.getPassword(), e.getPassword())){
                     employeeService.resetFailedAttempts(body.getUsername());
@@ -60,15 +61,17 @@ public class AccountController {
                     String token = jwtTokenComponent.generateToken(userDetails);
                     return ResponseEntity.ok(new JWTResponseDTO(token));
                 } else {
-                    if(e.getFailedAttempt() < employeeService.MAX_FAILED_ATTEMPTS){
+                    if(e.getFailedAttempt() < employeeService.MAX_FAILED_ATTEMPTS-1){
                         employeeService.increaseFailedAttempts(e);
-                        response.setMessage("login failed "+ e.getFailedAttempt() + " timesss");
+                        int failedTimes = e.getFailedAttempt() + 1;
+                        response.setMessage("login failed "+ failedTimes + " times");
                         return ResponseEntity.badRequest().body(response);
                     }
                     employeeService.lock(e);
                     response.setMessage("Account is locked");
                     return ResponseEntity.badRequest().body(response);
                 }
+            //if account is locked and Time expired -> unlock and login
             } else{
                if(employeeService.unlockWhenTimeExpired(e)){
                    if(passwordEncoder.matches(body.getPassword(), e.getPassword())){
@@ -79,7 +82,8 @@ public class AccountController {
                    } else {
                        if(e.getFailedAttempt() < employeeService.MAX_FAILED_ATTEMPTS - 1 ){
                            employeeService.increaseFailedAttempts(e);
-                           response.setMessage("login failed "+ e.getFailedAttempt() + " times");
+                           int failedTimes = e.getFailedAttempt() + 1;
+                           response.setMessage("login failed "+ failedTimes + " times");
                            return ResponseEntity.badRequest().body(response);
                        }
                        employeeService.lock(e);
@@ -87,13 +91,14 @@ public class AccountController {
                        return ResponseEntity.badRequest().body(response);
 
                    }
+               //return account is loked
                } else {
                    response.setMessage("Account is locked");
                    return ResponseEntity.badRequest().body(response);
                }
             }
         } else{
-            // return tài khoản không tồn tại
+            // return Account doesn't exist
             response.setMessage("Account doesn't exist");
             return ResponseEntity.badRequest().body(response);
         }

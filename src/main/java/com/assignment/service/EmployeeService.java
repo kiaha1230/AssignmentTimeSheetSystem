@@ -32,6 +32,10 @@ public class EmployeeService {
         this.employeeRepository.save(e);
     }
 
+    public int getMaxFailedAttempts(String username){
+        EmployeeEntity e = this.employeeRepository.findEmployeeEntityByUsername(username);
+        return e.getFailedAttempt();
+    }
 
     public void increaseFailedAttempts(EmployeeEntity e) {
         int newFailAttempts = e.getFailedAttempt() + 1;
