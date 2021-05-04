@@ -14,7 +14,7 @@ import java.util.Optional;
 public class EmployeeService {
     private EmployeeRepository employeeRepository;
     public static final int MAX_FAILED_ATTEMPTS = 3;
-    private static final long LOCK_TIME_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+    private static final long LOCK_TIME_DURATION =10 * 1000; // 10s
 
     @Autowired
     public EmployeeService(EmployeeRepository employeeRepository) {
@@ -31,6 +31,8 @@ public class EmployeeService {
     public void save(EmployeeEntity e){
         this.employeeRepository.save(e);
     }
+
+
     public void increaseFailedAttempts(EmployeeEntity e) {
         int newFailAttempts = e.getFailedAttempt() + 1;
         this.employeeRepository.updateFailedAttempts(newFailAttempts, e.getUsername());

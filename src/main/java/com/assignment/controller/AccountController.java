@@ -11,14 +11,18 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.ServletException;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.util.Locale;
 
@@ -45,13 +49,54 @@ public class AccountController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<JWTResponseDTO> authenticate(@RequestBody AuthenticationRequestDTO dto){
-        System.out.println(dto.getUsername());
-        authenticationManager
-                .authenticate(new UsernamePasswordAuthenticationToken(dto.getUsername(), dto.getPassword()));
-        UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(dto.getUsername());
-        String token = jwtTokenComponent.generateToken(userDetails);
-        return ResponseEntity.ok(new JWTResponseDTO(token));
+    public ResponseEntity<?> authenticate(@RequestBody AuthenticationRequestDTO body) {
+        EmployeeEntity e = employeeService.findByUserName(body.getUsername());
+        MessageDTO response  = new MessageDTO();
+        if(e!=null){
+            if(e.isAccountNonLocked()){
+                if(passwordEncoder.matches(body.getPassword(), e.getPassword())){
+                    employeeService.resetFailedAttempts(body.getUsername());
+                    UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(body.getUsername());
+                    String token = jwtTokenComponent.generateToken(userDetails);
+                    return ResponseEntity.ok(new JWTResponseDTO(token));
+                } else {
+                    if(e.getFailedAttempt() < employeeService.MAX_FAILED_ATTEMPTS){
+                        employeeService.increaseFailedAttempts(e);
+                        response.setMessage("login failed "+ e.getFailedAttempt() + " timesss");
+                        return ResponseEntity.badRequest().body(response);
+                    }
+                    employeeService.lock(e);
+                    response.setMessage("Account is locked");
+                    return ResponseEntity.badRequest().body(response);
+                }
+            } else{
+               if(employeeService.unlockWhenTimeExpired(e)){
+                   if(passwordEncoder.matches(body.getPassword(), e.getPassword())){
+                       employeeService.resetFailedAttempts(body.getUsername());
+                       UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(body.getUsername());
+                       String token = jwtTokenComponent.generateToken(userDetails);
+                       return ResponseEntity.ok(new JWTResponseDTO(token));
+                   } else {
+                       if(e.getFailedAttempt() < employeeService.MAX_FAILED_ATTEMPTS - 1 ){
+                           employeeService.increaseFailedAttempts(e);
+                           response.setMessage("login failed "+ e.getFailedAttempt() + " times");
+                           return ResponseEntity.badRequest().body(response);
+                       }
+                       employeeService.lock(e);
+                       response.setMessage("Account is locked");
+                       return ResponseEntity.badRequest().body(response);
+
+                   }
+               } else {
+                   response.setMessage("Account is locked");
+                   return ResponseEntity.badRequest().body(response);
+               }
+            }
+        } else{
+            // return tài khoản không tồn tại
+            response.setMessage("Account doesn't exist");
+            return ResponseEntity.badRequest().body(response);
+        }
     }
     @PostMapping
     public ResponseEntity<MessageDTO> createUser(@RequestBody @Valid CreateUserDTO body, Locale locale){
@@ -131,4 +176,9 @@ public class AccountController {
             employeeEntity.setPassword(passwordEncoder.encode(rawPassword));
         }
     }
+//    @PostMapping("/password/forgot")
+//    public ResponseEntity<MessageDTO> reset(){
+//        return
+//    }
+
 }
