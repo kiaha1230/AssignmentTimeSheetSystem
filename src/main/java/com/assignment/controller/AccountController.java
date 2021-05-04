@@ -68,7 +68,7 @@ public class AccountController {
                         return ResponseEntity.badRequest().body(response);
                     }
                     employeeService.lock(e);
-                    response.setMessage("Account is locked");
+                    response.setMessage("Account is locked, please wait 10s to try again");
                     return ResponseEntity.badRequest().body(response);
                 }
             //if account is locked and Time expired -> unlock and login
@@ -93,7 +93,7 @@ public class AccountController {
                    }
                //return account is loked
                } else {
-                   response.setMessage("Account is locked");
+                   response.setMessage("Account is locked, please wait 10s to try again");
                    return ResponseEntity.badRequest().body(response);
                }
             }
