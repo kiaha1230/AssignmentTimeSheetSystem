@@ -9,21 +9,27 @@ import com.assignment.repository.ConfirmationTokenRepository;
 import com.assignment.service.EmailSenderService;
 import com.assignment.service.EmployeeService;
 import com.assignment.transform.UserTransform;
+import io.jsonwebtoken.impl.DefaultClaims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.text.DateFormat;
+import java.util.HashMap;
 import java.util.Locale;
-
+import java.util.Map;
+import java.util.Map.Entry;
 @RestController
 @RequestMapping("api/accounts")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
@@ -106,6 +112,7 @@ public class AccountController {
         }
     }
     @PostMapping
+    @Secured("ROLE_ADMIN")
     public ResponseEntity<MessageDTO> createUser(@RequestBody @Valid CreateUserDTO body, Locale locale){
         UserTransform transform = new UserTransform(dateFormat);
         EmployeeEntity employeeEntity = transform.apply(body);
@@ -175,12 +182,7 @@ public class AccountController {
         response.setMessage(messageSource.getMessage("success.update",null,locale));
         return ResponseEntity.ok(response);
     }
-    private void encryptPassword(EmployeeEntity employeeEntity) {
-        String rawPassword = employeeEntity.getPassword();
-        if (rawPassword != null) {
-            employeeEntity.setPassword(passwordEncoder.encode(rawPassword));
-        }
-    }
+
 
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordDTO body, Locale locale){
@@ -241,6 +243,29 @@ public class AccountController {
         } else {
             response.setMessage("Reset token is invalid");
             return ResponseEntity.badRequest().body(response);
+        }
+    }
+//    @RequestMapping(value = "/refreshtoken", method = RequestMethod.GET)
+//    public ResponseEntity<?> refreshtoken(HttpServletRequest request) throws Exception {
+//        // From the HttpRequest get the claims
+//        DefaultClaims claims = (io.jsonwebtoken.impl.DefaultClaims) request.getAttribute("claims");
+//
+//        Map<String, Object> expectedMap = getMapFromIoJsonwebtokenClaims(claims);
+//        String token = jwtTokenComponent.doGenerateRefreshToken(expectedMap, expectedMap.get("sub").toString());
+//        return ResponseEntity.ok(new AuthenticationResponseDTO(token));
+//    }
+//
+//    public Map<String, Object> getMapFromIoJsonwebtokenClaims(DefaultClaims claims) {
+//        Map<String, Object> expectedMap = new HashMap<String, Object>();
+//        for (Entry<String, Object> entry : claims.entrySet()) {
+//            expectedMap.put(entry.getKey(), entry.getValue());
+//        }
+//        return expectedMap;
+//    }
+    private void encryptPassword(EmployeeEntity employeeEntity) {
+        String rawPassword = employeeEntity.getPassword();
+        if (rawPassword != null) {
+            employeeEntity.setPassword(passwordEncoder.encode(rawPassword));
         }
     }
 }

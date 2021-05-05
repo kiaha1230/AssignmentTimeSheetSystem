@@ -6,12 +6,12 @@ import java.util.Map;
 import java.util.function.Function;
 
 import com.assignment.transform.RoleTransform;
+import io.jsonwebtoken.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 
 @Component
 public class JWTTokenComponent {
@@ -19,11 +19,16 @@ public class JWTTokenComponent {
     private final String secret;
     private final long tokenLifetime;
     private final RoleTransform roleTransform;
+    private int refreshExpirationDateInMs;
 
     public JWTTokenComponent(Environment environment) {
         secret = environment.getRequiredProperty("jwt.secret");
         tokenLifetime = Long.parseLong(environment.getRequiredProperty("jwt.lifetime"));
         roleTransform = new RoleTransform();
+    }
+    @Value("${jwt.refreshExpirationDateInMs}")
+    public void setRefreshExpirationDateInMs(int refreshExpirationDateInMs) {
+        this.refreshExpirationDateInMs = refreshExpirationDateInMs;
     }
 
     private Claims getAllClaimsFromToken(String token) {
@@ -73,5 +78,10 @@ public class JWTTokenComponent {
     public boolean validateToken(String token, UserDetails user) {
         String userName = getUserNameFromToken(token);
         return userName.equals(user.getUsername()) && !isTokenExpired(token);
+    }
+    public String doGenerateRefreshToken(Map<String, Object> claims, String subject){
+        return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis()+refreshExpirationDateInMs))
+                .signWith(SignatureAlgorithm.HS512, secret).compact();
     }
 }
