@@ -1,28 +1,26 @@
 package com.assignment.controller;
 import com.assignment.dto.MessageDTO;
 import com.assignment.dto.account.*;
+import com.assignment.entity.ConfirmationToken;
 import com.assignment.entity.EmployeeEntity;
 import com.assignment.jwt.JWTTokenComponent;
 import com.assignment.jwt.JWTUserDetailsService;
+import com.assignment.repository.ConfirmationTokenRepository;
+import com.assignment.service.EmailSenderService;
 import com.assignment.service.EmployeeService;
 import com.assignment.transform.UserTransform;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.LockedException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.ServletException;
 import javax.validation.Valid;
-import java.io.IOException;
 import java.text.DateFormat;
 import java.util.Locale;
 
@@ -37,8 +35,11 @@ public class AccountController {
     private AuthenticationManager authenticationManager;
     private JWTTokenComponent jwtTokenComponent;
     private JWTUserDetailsService jwtUserDetailsService;
+    private ConfirmationTokenRepository confirmationTokenRepository;
+    private EmailSenderService emailSenderService;
+
     @Autowired
-    public AccountController(MessageSource messageSource, DateFormat dateFormat, EmployeeService employeeService, BCryptPasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JWTTokenComponent jwtTokenComponent, JWTUserDetailsService jwtUserDetailsService) {
+    public AccountController(MessageSource messageSource, DateFormat dateFormat, EmployeeService employeeService, BCryptPasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JWTTokenComponent jwtTokenComponent, JWTUserDetailsService jwtUserDetailsService, ConfirmationTokenRepository confirmationTokenRepository, EmailSenderService emailSenderService) {
         this.messageSource = messageSource;
         this.dateFormat = dateFormat;
         this.employeeService = employeeService;
@@ -46,8 +47,9 @@ public class AccountController {
         this.authenticationManager = authenticationManager;
         this.jwtTokenComponent = jwtTokenComponent;
         this.jwtUserDetailsService = jwtUserDetailsService;
+        this.confirmationTokenRepository = confirmationTokenRepository;
+        this.emailSenderService = emailSenderService;
     }
-
     @PostMapping("/login")
     public ResponseEntity<?> authenticate(@RequestBody AuthenticationRequestDTO body) {
         EmployeeEntity e = employeeService.findByUserName(body.getUsername());
@@ -65,11 +67,11 @@ public class AccountController {
                         employeeService.increaseFailedAttempts(e);
                         int failedTimes = e.getFailedAttempt() + 1;
                         response.setMessage("login failed "+ failedTimes + " times");
-                        return ResponseEntity.badRequest().body(response);
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
                     }
                     employeeService.lock(e);
                     response.setMessage("Account is locked, please wait 10s to try again");
-                    return ResponseEntity.badRequest().body(response);
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
                 }
             //if account is locked and Time expired -> unlock and login
             } else{
@@ -84,23 +86,23 @@ public class AccountController {
                            employeeService.increaseFailedAttempts(e);
                            int failedTimes = e.getFailedAttempt() + 1;
                            response.setMessage("login failed "+ failedTimes + " times");
-                           return ResponseEntity.badRequest().body(response);
+                           return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
                        }
                        employeeService.lock(e);
                        response.setMessage("Account is locked");
-                       return ResponseEntity.badRequest().body(response);
+                       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
 
                    }
                //return account is loked
                } else {
                    response.setMessage("Account is locked, please wait 10s to try again");
-                   return ResponseEntity.badRequest().body(response);
+                   return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
                }
             }
         } else{
             // return Account doesn't exist
             response.setMessage("Account doesn't exist");
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
     }
     @PostMapping
@@ -117,15 +119,13 @@ public class AccountController {
                 response.setMessage(messageSource.getMessage("success.created", null, locale));
                 return ResponseEntity.ok(response);
             } else{
-                response.setMessage(messageSource.getMessage("error.emailpassword", null, locale));
+                response.setMessage(messageSource.getMessage("error.email-password", null, locale));
                 return ResponseEntity.badRequest().body(response);
             }
         } else{
-            response.setMessage(messageSource.getMessage("error.created", null, locale));
+            response.setMessage(messageSource.getMessage("error.user.created", null, locale));
             return ResponseEntity.badRequest().body(response);
         }
-
-
     }
     @PutMapping("/password")
     public ResponseEntity<MessageDTO> changePassword(@RequestBody @Valid ChangePasswordDTO body, Locale locale) {
@@ -181,9 +181,66 @@ public class AccountController {
             employeeEntity.setPassword(passwordEncoder.encode(rawPassword));
         }
     }
-//    @PostMapping("/password/forgot")
-//    public ResponseEntity<MessageDTO> reset(){
-//        return
-//    }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordDTO body, Locale locale){
+        EmployeeEntity e = employeeService.findByUserName(body.getUsername());
+        MessageDTO response = new MessageDTO();
+        if(e!=null){
+            ConfirmationToken confirmationToken = new ConfirmationToken(e);
+            this.confirmationTokenRepository.save(confirmationToken);
+            SimpleMailMessage mailMessage = new SimpleMailMessage();
+            mailMessage.setTo(e.getEmail());
+            mailMessage.setSubject("Reset Password - TimeSheet Application");
+            mailMessage.setText("To complete the password reset process, please click here: "
+                    + "http://localhost:8080/api/accounts/confirm-reset?token="+confirmationToken.getToken());
+            emailSenderService.sendEmail(mailMessage);
+            response.setMessage("Request to reset password received. Check your inbox for the reset link");
+            response.setMessage(messageSource.getMessage("reset.password.email",null,locale));
+            return ResponseEntity.ok(response);
+        } else {
+            response.setMessage("This username does not exist");
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PostMapping("/confirm-reset")
+    public ResponseEntity<?> validateResetToken(@RequestParam("token") String token){
+        ConfirmationToken confirmationToken = confirmationTokenRepository.findByToken(token);
+        if(confirmationToken!=null){
+            ResetTokenDTO resetTokenDTO = new ResetTokenDTO();
+            resetTokenDTO.setResetToken(token);
+            return ResponseEntity.ok(resetTokenDTO);
+        } else{
+            MessageDTO response = new MessageDTO();
+            response.setMessage("Reset token is invalid");
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    @PutMapping("/reset-password")
+    public ResponseEntity<MessageDTO> resetPassword(@RequestBody ResetPasswordDTO body, Locale locale){
+        ConfirmationToken confirmationToken = confirmationTokenRepository.findByToken(body.getResetToken());
+        MessageDTO response = new MessageDTO();
+        if(confirmationToken!=null) {
+            if(body.getNewPassword().equals(body.getRetypePassword())){
+                if(RegexValidator.isValidPassWord(body.getNewPassword())){
+                    EmployeeEntity e = confirmationToken.getEmployeeEntity();
+                    e.setPassword(passwordEncoder.encode(body.getNewPassword()));
+                    employeeService.save(e);
+                    response.setMessage("Reset password success");
+                    return ResponseEntity.ok(response);
+                } else{
+                    response.setMessage(messageSource.getMessage("error.pwd.format", null, locale));
+                    return ResponseEntity.badRequest().body(response);
+                }
+            }else {
+                response.setMessage("Retype new password not the same new password");
+                return ResponseEntity.ok(response);
+            }
+
+        } else {
+            response.setMessage("Reset token is invalid");
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
 }

@@ -12,6 +12,7 @@ import java.util.List;
 @Setter
 public class UserDTO {
 	@NotBlank(message = "error.blank")
+    @Size(min = 10, max = 20, message = "size.username")
     private String username;
     private String email;
     private String fullName;
