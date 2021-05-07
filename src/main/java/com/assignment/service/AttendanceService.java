@@ -5,8 +5,10 @@ package com.assignment.service;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -23,6 +25,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.assignment.dto.AttendanceDTO;
 import com.assignment.dto.EmployeeDTO;
 import com.assignment.dto.MessageDTO;
 import com.assignment.dto.statistics.AttendanceStatisticsDTO;
@@ -45,7 +48,7 @@ public class AttendanceService {
 		MessageDTO message = new MessageDTO();
 		AttendanceEntity entity = new AttendanceEntity();
 		try {
-			Date date = new Date();
+			LocalDateTime date = LocalDateTime.now();
 			entity.setEmployeeId(employeeId);
 			entity.setCheckInTime(date);
 			String hql = "FROM AttendanceEntity a WHERE DATE(a.checkInTime) = Date(now()) AND a.employeeId = :id";
@@ -71,14 +74,14 @@ public class AttendanceService {
 	public MessageDTO checkOut(Integer employeeId) {
 		MessageDTO message = new MessageDTO();
 		try {
-			Date dateNow = new Date();
+			LocalDateTime dateNow = LocalDateTime.now();
 			String hql = "FROM AttendanceEntity a WHERE DATE(a.checkInTime) = Date(now()) AND a.employeeId = :id and a.checkOutTime is null";
 			Query q = em.createQuery(hql);
 			q.setParameter("id", employeeId);
 			List<AttendanceEntity> ls = q.getResultList();
 			if (ls.size() > 0) {
 				AttendanceEntity entity = ls.get(0);
-				if (entity.getCheckInTime().before(dateNow)) {
+				if (entity.getCheckInTime().isBefore(dateNow)) {
 					String hql2 = "UPDATE AttendanceEntity a SET checkOutTime = :date";
 					Query q2 = em.createQuery(hql2);
 					q2.setParameter("date", dateNow);
@@ -97,8 +100,19 @@ public class AttendanceService {
 	}
 
 	@Transactional
-	public List<AttendanceStatisticsDTO> attendanceStatistics(int year, int month) {
-		List<AttendanceStatisticsDTO> lsReturn = new ArrayList<AttendanceStatisticsDTO>();
+	public AttendanceStatisticsDTO personalAttendanceStatistics(int year, int month) {
+		AttendanceStatisticsDTO returnDto = new AttendanceStatisticsDTO();
+		// get user id in db with username
+		SecurityContext securityContext = SecurityContextHolder.getContext();
+		String username = securityContext.getAuthentication().getName();
+		String hql = "FROM EmployeeEntity e WHERE e.username = :username";
+		Query q = em.createQuery(hql);
+		q.setParameter("username", username);
+		List<EmployeeEntity> employeeLs = q.getResultList();
+		EmployeeDTO employeeDto = new EmployeeDTO(employeeLs.get(0));
+		// end
+
+		// get leave days (1/5)
 		Set<String> workingDaysList;
 		LocalDate currentDate = LocalDate.now();
 		if (currentDate.getMonthValue() == month && currentDate.getYear() == year) {
@@ -107,31 +121,35 @@ public class AttendanceService {
 			workingDaysList = getMonthWorkingDays(year, month);
 		}
 		int workingDays = workingDaysList.size();
-		int numberOfAttendanceRecord = getNumberOfRecord(year, month);
-		int leaveDays = workingDays - numberOfAttendanceRecord;
-		AttendanceStatisticsDTO dto = new AttendanceStatisticsDTO();
+		List<AttendanceDTO> lsAttendanceDto = getRecordsInMonth(year, month, employeeDto.getId());
+		int leaveDays = workingDays - lsAttendanceDto.size();
+		returnDto.setLeaveDates(leaveDays);
+		// get name (2/5)
+		returnDto.setName(employeeDto.getFullName());
 
-		Set<String> listWorkingDays = getMonthWorkingDays(month, year);
-		listWorkingDays.stream().forEach(a -> System.out.println(a));
-		return lsReturn;
+		// get list attendance (3/5)
+		returnDto.setLsAttandance(lsAttendanceDto);
+
+		// get late days (4/5)
+		for (AttendanceDTO attendanceDTO : lsAttendanceDto) {
+			if (attendanceDTO.getCheckInTime().isBefore(other))
+		}
+		
+		// get leave early (5/5)
+
+		return returnDto;
 	}
 
-	@Transactional
-	public int getNumberOfRecord(int year, int month) {
-		SecurityContext securityContext = SecurityContextHolder.getContext();
-		String username = securityContext.getAuthentication().getName();
-		String hql = "FROM EmployeeEntity e WHERE e.username = :username";
+	public List<AttendanceDTO> getRecordsInMonth(int year, int month, int employeeId) {
+		List<AttendanceDTO> lsAttendanceDto = new ArrayList<AttendanceDTO>();
+		String hql = "FROM AttendanceEntity a WHERE a.employeeId = :id AND YEAR(checkInTime) = :year AND MONTH(checkInTime)= :month";
 		Query q = em.createQuery(hql);
-		q.setParameter("username", username);
-		List<EmployeeEntity> ls = q.getResultList();
-		EmployeeDTO dto = new EmployeeDTO(ls.get(0));
-		String hql2 = "FROM AttendanceEntity a WHERE a.employeeId = :id AND YEAR(checkInTime) = :year AND MONTH(checkInTime)= :month";
-		Query q2 = em.createQuery(hql2);
-		q2.setParameter("id", dto.getId());
-		q2.setParameter("year", year);
-		q2.setParameter("month", month);
-		List<AttendanceEntity> attendanceLs = q2.getResultList();
-		return attendanceLs.size();
+		q.setParameter("id", employeeId);
+		q.setParameter("year", year);
+		q.setParameter("month", month);
+		List<AttendanceEntity> lsAttendance = q.getResultList();
+		lsAttendance.stream().forEach(a -> lsAttendanceDto.add(new AttendanceDTO(a)));
+		return lsAttendanceDto;
 
 	}
 
@@ -168,4 +186,5 @@ public class AttendanceService {
 		}
 		return ls;
 	}
+
 }

@@ -3,6 +3,10 @@
  */
 package com.assignment.dto.statistics;
 
+import java.util.List;
+
+import com.assignment.dto.AttendanceDTO;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,11 +19,13 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class AttendanceStatisticsDTO {
-
 	private String name;
-	private int lateDays;
+	
+	private List<AttendanceDTO> lsAttandance;
 
-	private int soonDays;
+	private Integer lateDays;
 
-	private int leaveDates;
+	private Integer leaveEarlyDays;
+
+	private Integer leaveDates;
 }

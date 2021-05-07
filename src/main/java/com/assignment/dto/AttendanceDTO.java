@@ -3,6 +3,7 @@
  */
 package com.assignment.dto;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import com.assignment.entity.AttendanceEntity;
@@ -22,9 +23,9 @@ public class AttendanceDTO {
 
 	private int id;
 
-	private Date checkInTime;
+	private LocalDateTime checkInTime;
 
-	private Date checkOutTime;
+	private LocalDateTime checkOutTime;
 
 	private int employeeId;
 
