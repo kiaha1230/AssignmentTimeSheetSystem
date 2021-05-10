@@ -7,6 +7,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.assignment.dto.ProjectDTO;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -29,8 +31,16 @@ public class ProjectEntity {
 	private String description;
 
 	@Column(name = "status")
-	private int status;
+	private Integer status;
 
 	@Column(name = "pm_id")
-	private int pmId;
+	private Integer pmId;
+
+	public ProjectEntity(ProjectDTO dto) {
+		this.id = dto.getId();
+		this.name = dto.getName();
+		this.description = dto.getDescription();
+		this.status = dto.getStatus();
+		this.pmId = dto.getPmId();
+	}
 }

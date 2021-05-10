@@ -1,5 +1,6 @@
 package com.assignment.entity;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -12,6 +13,8 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import org.hibernate.annotations.CreationTimestamp;
+
+import com.assignment.dto.AttendanceDTO;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,14 +32,19 @@ public class AttendanceEntity {
 	private int id;
 
 	@Column(name = "check_in_time")
-	@Temporal(TemporalType.TIMESTAMP)
 	@CreationTimestamp
-	private Date checkInTime;
+	private LocalDateTime checkInTime;
 
 	@Column(name = "check_out_time")
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date checkOutTime;
+	private LocalDateTime checkOutTime;
 
 	@Column(name = "employee_id")
 	private int employeeId;
+
+	public AttendanceEntity(AttendanceDTO dto) {
+		this.id = dto.getId();
+		this.checkInTime = dto.getCheckInTime();
+		this.checkOutTime = dto.getCheckOutTime();
+		this.employeeId = dto.getEmployeeId();
+	}
 }
