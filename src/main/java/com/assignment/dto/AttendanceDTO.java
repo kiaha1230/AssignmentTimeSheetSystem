@@ -28,6 +28,10 @@ public class AttendanceDTO {
 	private LocalDateTime checkOutTime;
 
 	private int employeeId;
+	
+	private boolean late;
+	
+	private boolean leaveEarly;
 
 	public AttendanceDTO(AttendanceEntity entity) {
 		this.id = entity.getId();

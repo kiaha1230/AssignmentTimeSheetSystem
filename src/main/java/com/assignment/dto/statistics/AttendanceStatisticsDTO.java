@@ -20,12 +20,16 @@ import lombok.Setter;
 @NoArgsConstructor
 public class AttendanceStatisticsDTO {
 	private String name;
-	
+
 	private List<AttendanceDTO> lsAttandance;
 
 	private Integer lateDays;
 
 	private Integer leaveEarlyDays;
 
-	private Integer leaveDates;
+	private Integer leaveDays;
+
+	private int year;
+
+	private int month;
 }

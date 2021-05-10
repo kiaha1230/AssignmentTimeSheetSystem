@@ -11,5 +11,6 @@ import java.time.LocalTime;
  */
 public class GlobalValue {
 	public static final LocalTime startWorkingTime = LocalTime.of(9, 0);
+	public static final LocalTime leaveTime = LocalTime.of(18, 0);
 
 }
