@@ -3,6 +3,8 @@
  */
 package com.assignment.dto;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 
 import com.assignment.entity.EmployeeEntity;
@@ -41,6 +43,12 @@ public class EmployeeDTO {
 
 	private boolean active;
 
+	private boolean accountNonLocked;
+
+	private int failedAttempt;
+
+	private Date lockTime;
+
 	public EmployeeDTO(EmployeeEntity entity) {
 		this.id = entity.getId();
 		this.fullName = entity.getFullName();
@@ -51,5 +59,10 @@ public class EmployeeDTO {
 		this.bankName = entity.getBankName();
 		this.username = entity.getUsername();
 		this.password = entity.getPassword();
+		this.roles = entity.getRoles();
+		this.active = entity.isActive();
+		this.accountNonLocked = entity.isAccountNonLocked();
+		this.failedAttempt = entity.getFailedAttempt();
+		this.lockTime = entity.getLockTime();
 	}
 }

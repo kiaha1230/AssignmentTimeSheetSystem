@@ -1,5 +1,6 @@
 package com.assignment.entity;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -31,13 +32,11 @@ public class AttendanceEntity {
 	private int id;
 
 	@Column(name = "check_in_time")
-	@Temporal(TemporalType.TIMESTAMP)
 	@CreationTimestamp
-	private Date checkInTime;
+	private LocalDateTime checkInTime;
 
 	@Column(name = "check_out_time")
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date checkOutTime;
+	private LocalDateTime checkOutTime;
 
 	@Column(name = "employee_id")
 	private int employeeId;
