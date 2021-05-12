@@ -19,6 +19,9 @@ import com.assignment.dto.MessageDTO;
 import com.assignment.dto.OvertimeDTO;
 import com.assignment.service.OvertimeService;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+
 /**
  * @author baovd
  *
@@ -26,15 +29,17 @@ import com.assignment.service.OvertimeService;
 @RestController
 @RequestMapping("/api")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
+@Api(description = "Endpoints for Creating, Update OT request status", tags = { "Overtime" })
 public class OvertimeController {
 	@Autowired
 	private OvertimeService overtimeService;
 
+	@ApiOperation(value = "API create OT request from employee", notes = "Create OT request and wait for response from PM")
 	@PostMapping("/overtime")
-	public ResponseEntity<?> createOTRequest(@Valid @RequestBody OvertimeDTO dto) {
+	public ResponseEntity<?> createOTRequest(@Valid @RequestBody OvertimeDTO overtimeDTO) {
 		MessageDTO message = new MessageDTO();
 		try {
-			overtimeService.createOTRequest(dto);
+			overtimeService.createOTRequest(overtimeDTO);
 		} catch (Exception e) {
 			message.setMessage("Unknown Error: " + e.getMessage());
 		}
@@ -42,14 +47,15 @@ public class OvertimeController {
 		return ResponseEntity.ok(message);
 	}
 
+	@ApiOperation(value = "API confirm or reject OT request from PM")
 	@PutMapping("/overtime")
-	public ResponseEntity<?> decideOTRequest(@Valid @RequestBody DecideOTRequestDTO dto) {
+	public ResponseEntity<?> decideOTRequest(@Valid @RequestBody DecideOTRequestDTO decideOTRequestDTO) {
 		MessageDTO message = new MessageDTO();
 		try {
-			overtimeService.confirmOrRejectOT(dto);
-			if (dto.getStatus() == -1) {
+			overtimeService.confirmOrRejectOT(decideOTRequestDTO);
+			if (decideOTRequestDTO.getStatus() == -1) {
 				message.setMessage("Rejected OT Request");
-			} else if (dto.getStatus() == 1) {
+			} else if (decideOTRequestDTO.getStatus() == 1) {
 				message.setMessage("Approved OT Request");
 			}
 		} catch (Exception e) {
