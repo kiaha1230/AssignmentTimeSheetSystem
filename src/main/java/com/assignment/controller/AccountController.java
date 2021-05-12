@@ -10,6 +10,8 @@ import com.assignment.service.EmailSenderService;
 import com.assignment.service.EmployeeService;
 import com.assignment.transform.UserTransform;
 import io.jsonwebtoken.impl.DefaultClaims;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
@@ -56,6 +58,7 @@ public class AccountController {
         this.confirmationTokenRepository = confirmationTokenRepository;
         this.emailSenderService = emailSenderService;
     }
+    @ApiOperation(value = "API login, return token if success")
     @PostMapping("/login")
     public ResponseEntity<?> authenticate(@RequestBody AuthenticationRequestDTO body) {
         EmployeeEntity e = employeeService.findByUserName(body.getUsername());
@@ -111,6 +114,7 @@ public class AccountController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
     }
+    @ApiOperation(value = "API create user, only admin can create new user")
     @PostMapping
     @Secured("ROLE_ADMIN")
     public ResponseEntity<MessageDTO> createUser(@RequestBody @Valid CreateUserDTO body, Locale locale){
@@ -134,6 +138,7 @@ public class AccountController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+    @ApiOperation(value="API change password")
     @PutMapping("/password")
     public ResponseEntity<MessageDTO> changePassword(@RequestBody @Valid ChangePasswordDTO body, Locale locale) {
         SecurityContext securityContext = SecurityContextHolder.getContext();
@@ -166,6 +171,7 @@ public class AccountController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+    @ApiOperation(value = "API update information account")
     @PutMapping
     public ResponseEntity<MessageDTO> updateAccount(@RequestBody @Valid UpdateUserDTO body,Locale locale){
         SecurityContext securityContext = SecurityContextHolder.getContext();
@@ -183,7 +189,7 @@ public class AccountController {
         return ResponseEntity.ok(response);
     }
 
-
+    @ApiOperation(value = "API send email to reset password")
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordDTO body, Locale locale){
         EmployeeEntity e = employeeService.findByUserName(body.getUsername());
@@ -205,7 +211,7 @@ public class AccountController {
             return ResponseEntity.badRequest().body(response);
         }
     }
-
+    @ApiOperation(value = "API check reset password token is valid")
     @PostMapping("/confirm-reset")
     public ResponseEntity<?> validateResetToken(@RequestParam("token") String token){
         ConfirmationToken confirmationToken = confirmationTokenRepository.findByToken(token);
@@ -219,6 +225,7 @@ public class AccountController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+    @ApiOperation(value = "api reset password after get email reset password")
     @PutMapping("/reset-password")
     public ResponseEntity<MessageDTO> resetPassword(@RequestBody ResetPasswordDTO body, Locale locale){
         ConfirmationToken confirmationToken = confirmationTokenRepository.findByToken(body.getResetToken());
