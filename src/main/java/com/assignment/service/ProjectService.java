@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.assignment.dto.AssignmentDTO;
+import com.assignment.dto.MessageDTO;
 import com.assignment.dto.ProjectDTO;
 import com.assignment.entity.AssignmentEntity;
 import com.assignment.entity.ProjectEntity;
@@ -32,13 +33,20 @@ public class ProjectService {
 		}
 	}
 
-	public void alter(ProjectDTO dto) {
+	public MessageDTO alter(ProjectDTO dto) {
+		MessageDTO message = new MessageDTO();
+		if (dto.getId() == 0) {
+			message.setMessage("Id Không tồn tại");
+			return message;
+		}
 		try {
 			ProjectEntity entity = new ProjectEntity(dto);
 			projectRepository.save(entity);
+			message.setMessage("Project Information Changed Successfully");
 		} catch (Exception e) {
 			throw e;
 		}
+		return message;
 	}
 
 	public List<ProjectEntity> listAllProjects() {

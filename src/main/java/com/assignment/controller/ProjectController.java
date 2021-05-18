@@ -59,7 +59,7 @@ public class ProjectController {
 
 		return ResponseEntity.ok(ls);
 	}
-	
+
 	@ApiOperation(value = "API view a Project information", notes = "Only PM and Admin can use this API")
 	@GetMapping("/projects/{id}")
 	public ResponseEntity<?> viewAProjects(@PathVariable Integer id) {
@@ -77,17 +77,16 @@ public class ProjectController {
 		}
 		return ResponseEntity.ok(obj);
 	}
-	
+
 	@ApiOperation(value = "API alter Project information", notes = "Only Admin alter project")
 	@PutMapping("/projects")
 	public ResponseEntity<?> alterProject(@Valid @RequestBody ProjectDTO dto) {
 		MessageDTO message = new MessageDTO();
 		try {
-			projectService.alter(dto);
+			message = projectService.alter(dto);
 		} catch (Exception e) {
 			message.setMessage("Unknown Error: " + e.getMessage());
 		}
-		message.setMessage("Project Information Changed Successfully");
 		return ResponseEntity.ok(message);
 	}
 
