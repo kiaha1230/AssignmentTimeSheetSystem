@@ -35,10 +35,6 @@ public class ProjectService {
 
 	public MessageDTO alter(ProjectDTO dto) {
 		MessageDTO message = new MessageDTO();
-		if (dto.getId() == 0) {
-			message.setMessage("Id Không tồn tại");
-			return message;
-		}
 		try {
 			ProjectEntity entity = new ProjectEntity(dto);
 			projectRepository.save(entity);

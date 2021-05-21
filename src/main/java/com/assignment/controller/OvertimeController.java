@@ -8,6 +8,7 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -48,10 +49,12 @@ public class OvertimeController {
 	}
 
 	@ApiOperation(value = "API confirm or reject OT request from PM")
-	@PutMapping("/overtime")
-	public ResponseEntity<?> decideOTRequest(@Valid @RequestBody DecideOTRequestDTO decideOTRequestDTO) {
+	@PutMapping("/overtime/{id}")
+	public ResponseEntity<?> decideOTRequest(@Valid @RequestBody DecideOTRequestDTO decideOTRequestDTO,
+			@PathVariable Integer id) {
 		MessageDTO message = new MessageDTO();
 		try {
+			decideOTRequestDTO.setId(id);
 			overtimeService.confirmOrRejectOT(decideOTRequestDTO);
 			if (decideOTRequestDTO.getStatus() == -1) {
 				message.setMessage("Rejected OT Request");

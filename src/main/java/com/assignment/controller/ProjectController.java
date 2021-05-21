@@ -79,10 +79,11 @@ public class ProjectController {
 	}
 
 	@ApiOperation(value = "API alter Project information", notes = "Only Admin alter project")
-	@PutMapping("/projects")
-	public ResponseEntity<?> alterProject(@Valid @RequestBody ProjectDTO dto) {
+	@PutMapping("/projects/{id}")
+	public ResponseEntity<?> alterProject(@Valid @RequestBody ProjectDTO dto, @PathVariable Integer id) {
 		MessageDTO message = new MessageDTO();
 		try {
+			dto.setId(id);
 			message = projectService.alter(dto);
 		} catch (Exception e) {
 			message.setMessage("Unknown Error: " + e.getMessage());
