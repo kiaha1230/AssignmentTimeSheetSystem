@@ -72,11 +72,14 @@ public class AttendanceService {
 			attendanceRepository.save(entity);
 			message.setMessage("Check-In Successfully");
 			return message;
-		} catch (ConstraintViolationException contrainException) {
-			message.setMessage("Employee Did Not Exist");
-			return message;
 		} catch (Exception e) {
-			throw e;
+			Throwable t = e.getCause();
+			if (t instanceof ConstraintViolationException) {
+				message.setMessage("Employee Did Not Exist");
+				return message;
+			} else {
+				throw e;
+			}
 		}
 	}
 
