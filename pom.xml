@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>assignment</groupId>
 	<artifactId>AssignmentTimeSheetSystem</artifactId>
-	<version>0.0.3-SNAPSHOT</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<packaging>war</packaging>
 	<name>AssignmentTimeSheetSystem</name>
 	<description>Assignment he thong cham cong</description>
